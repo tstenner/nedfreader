@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+	<ItemGroup>
+		<ProjectReference Include="..\nedfreader\nedfreader.csproj" />
+		<Reference Include="AnalyzerInterfaces">
+			<HintPath>C:\Vision\Analyzer2\AnalyzerInterfaces.dll</HintPath>
+		</Reference>
+		<Reference Include="Analyzer.Toolbox">
+			<HintPath>C:\Vision\Analyzer2\AnalyzerToolbox.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+</Project>

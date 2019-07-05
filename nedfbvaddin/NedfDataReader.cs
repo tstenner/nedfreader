@@ -81,8 +81,19 @@ namespace BrainVision.Analyzer.Readers
 			{
 				var props = ComponentFactory.CreateChangeProperties();
 				file = new NedfFile(dataFile);
+				ComponentFactory.SaveChangedMarkers(storage, file.GetMarkerPairs().Select(pair =>
+				{
+					var m = ComponentFactory.CreateChangeMarker();
+					m.Channel = -1;
+					var (pos, val) = pair;
+					m.Position = pos;
+					m.Points = 1;
+					m.Type = "Stimulus";
+					m.Visible = true;
+					m.Description = val.ToString();
+					return m;
+				}).ToList());
 
-				ComponentFactory.SaveChangedMarkers(storage, file.GetMarkers());
 				props.Channels.AddRange(file.channelnames.Select(chname =>
 				{
 					var ch = props.CreateChannel();

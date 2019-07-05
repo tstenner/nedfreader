@@ -1,13 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StartupObject>TestNedfReader.TestNedfReader</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\nedfreader\nedfreader.csproj">
-      <Project>{E83CBDCE-5CB9-424D-AB34-BC38941349A0}</Project>
-      <Name>nedfreader</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\nedfreader\nedfreader.csproj" />
   </ItemGroup>
 </Project>

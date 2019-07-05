@@ -6,8 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using BrainVision.Interfaces;
-using BrainVision.Support;
 
 public class NedfFile
 {
@@ -145,21 +143,5 @@ public class NedfFile
 		Trace.Assert(nmarker < nsample / 100,
 			$"Unexpected high number of triggers found ({nmarker}), this could indicate a broken file ({infile.Name}).");
 		return markers;
-	}
-
-	public List<IChangeEEGMarker> GetMarkers()
-	{
-		return GetMarkerPairs().Select(pair =>
-		{
-			var m = ComponentFactory.CreateChangeMarker();
-			m.Channel = -1;
-			var (pos, val) = pair;
-			m.Position = pos;
-			m.Points = 1;
-			m.Type = "Stimulus";
-			m.Visible = true;
-			m.Description = val.ToString();
-			return m;
-		}).ToList();
 	}
 }
