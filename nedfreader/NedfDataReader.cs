@@ -15,9 +15,7 @@ namespace BrainVision.Analyzer.Readers
 		private IEEGStorage eegStorage;
 		private NedfFile file;
 
-		public void Dispose()
-		{
-		}
+		public void Dispose() { }
 
 		public void Init(IStructuredStorage storage, IEEGData parent)
 		{
@@ -47,30 +45,15 @@ namespace BrainVision.Analyzer.Readers
 			return file.GetData(nPosition, nPoints, channelList);
 		}
 
-		public IEEGMarker[] GetMarkers(uint nPosition, uint nPoints)
-		{
-			return eegStorage?.GetMarkers(nPosition, nPoints);
-		}
+		public IEEGMarker[] GetMarkers(uint nPosition, uint nPoints) => eegStorage?.GetMarkers(nPosition, nPoints);
 
-		public IEEGMarker GetMarker(EEGMarkerIndex markerIndex)
-		{
-			return eegStorage?.GetMarker(markerIndex);
-		}
+		public IEEGMarker GetMarker(EEGMarkerIndex markerIndex) => eegStorage?.GetMarker(markerIndex);
 
-		public EEGMarkerIndex[] GetMarkerIndexTable()
-		{
-			return eegStorage?.GetMarkerIndexTable();
-		}
+		public EEGMarkerIndex[] GetMarkerIndexTable() => eegStorage?.GetMarkerIndexTable();
 
-		public IStructuredStorage GetStorage()
-		{
-			return eegStorage;
-		}
+		public IStructuredStorage GetStorage() => eegStorage;
 
-		public int GetTransientDataOffset()
-		{
-			return 0;
-		}
+		public int GetTransientDataOffset() => 0;
 
 		public int OpenRawFile(string sFilename)
 		{
@@ -86,7 +69,6 @@ namespace BrainVision.Analyzer.Readers
 				MessageDisplay.ShowError("NedfDataReader", "Error reading file", e.Message);
 				return -1;
 			}
-
 			return 1;
 		}
 

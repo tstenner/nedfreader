@@ -75,20 +75,9 @@ public class NedfFile
 	}
 
 	// Normally, it should be nchaneeg + nsamplestimpereeg*nstim, but it's not.
-	public uint Samplesize()
-	{
-		return (1 + nsamplestimpereeg) * nchan * 3 + 4;
-	}
-
-	public uint Chunkfrontlength()
-	{
-		return nacc * 2;
-	}
-
-	public uint Chunksize()
-	{
-		return Samplesize() * 5 + Chunkfrontlength();
-	}
+	public uint Samplesize() => (1 + nsamplestimpereeg) * nchan * 3 + 4;
+	public uint Chunkfrontlength() => nacc * 2;
+	public uint Chunksize() => Samplesize() * 5 + Chunkfrontlength();
 
 	private static uint ParseXmlUInt(XmlNode node, string xpath)
 	{
@@ -98,13 +87,11 @@ public class NedfFile
 		return res;
 	}
 
-	public uint Binpos(uint sample)
-	{
-		return 10240 // header
-		       + Chunkfrontlength()
-		       + sample / 5 * Chunksize()
-		       + sample % 5 * Samplesize();
-	}
+	public uint Binpos(uint sample) =>
+		10240 // header
+		+ Chunkfrontlength()
+		+ sample / 5 * Chunksize()
+		+ sample % 5 * Samplesize();
 
 	public float[] GetData(uint startsample, uint length, int[] channelList)
 	{
