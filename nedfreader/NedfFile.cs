@@ -27,7 +27,7 @@ public class NedfFile
 		Trace.Assert(el != null, nameof(el) + " != null");
 		NEDFversion = decimal.Parse(el.SelectSingleNode("NEDFversion")?.InnerText ?? "0",
 			NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"));
-		Trace.Assert(NEDFversion < 1.3m || NEDFversion > 1.4m,
+		Trace.Assert(NEDFversion >= 1.3m || NEDFversion <= 1.4m,
 			$"Untested NEDFversion {NEDFversion} in {dataFile}, proceed at your own risk.");
 		var addchanstat = el.SelectSingleNode("AdditionalChannelStatus")?.InnerText ?? "OFF";
 		if (addchanstat != "OFF")
