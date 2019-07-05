@@ -123,13 +123,14 @@ public class NedfFile
 		return res;
 	}
 
-	public IEnumerable<(uint, uint)> GetMarkerPairs()
+	public IEnumerable<(uint, uint)> GetMarkerPairs(uint maxsample=int.MaxValue)
 	{
 		infile.Seek(Binpos(0) - Chunkfrontlength(), SeekOrigin.Begin);
 		var markers = new List<ValueTuple<uint, uint>>();
 
 		var buffer = new byte[4];
-		for (uint i = 0; i < nsample; i++)
+		if (maxsample > nsample) maxsample = nsample;
+		for (uint i = 0; i < maxsample; i++)
 		{
 			if (i % 5 == 0) infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
 			infile.Seek(Samplesize() - 4, SeekOrigin.Current);
