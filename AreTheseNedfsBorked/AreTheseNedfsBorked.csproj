@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+	<TargetFrameworks>net472</TargetFrameworks>
+	<LangVersion>8</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\nedfreader\nedfreader.csproj" />
+  </ItemGroup>
+</Project>
