@@ -81,7 +81,8 @@ namespace BrainVision.Analyzer.Readers
 			{
 				var props = ComponentFactory.CreateChangeProperties();
 				file = new NedfFile(dataFile);
-				ComponentFactory.SaveChangedMarkers(storage, file.GetMarkerPairs().Select(pair =>
+				var dataName = "Tristans Raw Data";
+				var markers = file.GetMarkerPairs().Select(pair =>
 				{
 					var m = ComponentFactory.CreateChangeMarker();
 					m.Channel = -1;
@@ -92,7 +93,11 @@ namespace BrainVision.Analyzer.Readers
 					m.Visible = true;
 					m.Description = val.ToString();
 					return m;
-				}).ToList());
+				}).ToList();
+				if (markers.Count > file.nsample / 10)
+					dataName = "Corrupt Data File";
+				else
+					ComponentFactory.SaveChangedMarkers(storage, markers);
 
 				props.Channels.AddRange(file.channelnames.Select(chname =>
 				{
@@ -108,8 +113,8 @@ namespace BrainVision.Analyzer.Readers
 				props.SamplingInterval = 1000000.0 / file.sfreq;
 				props.Rereferenced = false;
 				props.Save(storage);
-				storage.SetStreamTextA("Name", "Tristans Raw Data");
-				storage.SetStreamText("NameW", "Tristans Raw Data");
+				storage.SetStreamTextA("Name", dataName);
+				storage.SetStreamText("NameW", dataName);
 				storage.SetStreamTextA("DataPath", dataFile);
 				storage.SetStreamText("DataPathW", dataFile);
 				storage.SetGuid(new Guid(Guid));
