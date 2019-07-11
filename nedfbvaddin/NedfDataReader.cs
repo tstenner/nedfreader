@@ -13,7 +13,6 @@ namespace BrainVision.Analyzer.Readers
 		private string dataFile;
 		private IEEGProperties eegProperties;
 		private IEEGStorage eegStorage;
-		private NedfFile file;
 
 		public void Dispose() { }
 
@@ -23,7 +22,6 @@ namespace BrainVision.Analyzer.Readers
 			{
 				eegStorage = storage as IEEGStorage;
 				dataFile = storage.GetStreamText("DataPath");
-				file = new NedfFile(dataFile);
 				eegProperties = GetProperties();
 			}
 			catch (Exception ex)
@@ -41,8 +39,10 @@ namespace BrainVision.Analyzer.Readers
 
 		public float[] GetData(uint nPosition, uint nPoints, int[] channelList)
 		{
-			if (file == null) file = new NedfFile(dataFile);
-			return file.GetData(nPosition, nPoints, channelList);
+			using (var f = new NedfFile(dataFile))
+			{
+				return f.GetData(nPosition, nPoints, channelList);
+			}
 		}
 
 		public IEEGMarker[] GetMarkers(uint nPosition, uint nPoints) => eegStorage?.GetMarkers(nPosition, nPoints);
@@ -62,7 +62,7 @@ namespace BrainVision.Analyzer.Readers
 			dataFile = sFilename;
 			try
 			{
-				file = new NedfFile(dataFile);
+				using(new NedfFile(dataFile)){ }
 			}
 			catch (Exception e)
 			{
@@ -81,47 +81,49 @@ namespace BrainVision.Analyzer.Readers
 			try
 			{
 				var props = ComponentFactory.CreateChangeProperties();
-				file = new NedfFile(dataFile);
-				var dataName = "Tristans Raw Data";
-				var markers = file.GetMarkerPairs().ToList();
-				if (markers.Count > file.nsample / 10)
-					dataName = "Corrupt Data File";
-				else
-					ComponentFactory.SaveChangedMarkers(storage, markers.Select(pair =>
-					{
-						var m = ComponentFactory.CreateChangeMarker();
-						m.Channel = -1;
-						var (pos, val) = pair;
-						m.Position = pos;
-						m.Points = 1;
-						m.Type = "Stimulus";
-						m.Visible = true;
-						m.Description = val.ToString();
-						return m;
-					}).ToList());
-
-				var coords = ElectrodeCoordinates.GetDefaultCoordinates();
-				props.Channels.AddRange(file.channelnames.Select(chname =>
+				using (var file = new NedfFile(dataFile))
 				{
-					var ch = props.CreateChannel();
-					ch.Name = chname;
-					ch.DataUnit = DataUnit.Microvolt;
-					if(coords.ContainsKey(chname)) ch.Coords = coords[chname];
-					return ch;
-				}));
-				props.AveragedSegments = 0;
-				props.DatasetLength = file.nsample;
-				props.Datatype = DataType.TimeDomain;
-				props.SegmentationType = SegmentationType.NotSegmented;
-				props.SamplingInterval = 1000000.0 / file.sfreq;
-				props.Rereferenced = false;
-				props.Save(storage);
-				storage.SetStreamTextA("Name", dataName);
-				storage.SetStreamText("NameW", dataName);
-				storage.SetStreamTextA("DataPath", dataFile);
-				storage.SetStreamText("DataPathW", dataFile);
-				storage.SetGuid(new Guid(Guid));
-				storage.SetStreamText("InternalDataXML", file.headerxml);
+					var dataName = "Tristans Raw Data";
+					var markers = file.GetMarkerPairs().ToList();
+					if (markers.Count > file.nsample / 10)
+						dataName = "Corrupt Data File";
+					else
+						ComponentFactory.SaveChangedMarkers(storage, markers.Select(pair =>
+						{
+							var m = ComponentFactory.CreateChangeMarker();
+							m.Channel = -1;
+							var (pos, val) = pair;
+							m.Position = pos;
+							m.Points = 1;
+							m.Type = "Stimulus";
+							m.Visible = true;
+							m.Description = val.ToString();
+							return m;
+						}).ToList());
+
+					var coords = ElectrodeCoordinates.GetDefaultCoordinates();
+					props.Channels.AddRange(file.channelnames.Select(chname =>
+					{
+						var ch = props.CreateChannel();
+						ch.Name = chname;
+						ch.DataUnit = DataUnit.Microvolt;
+						if (coords.ContainsKey(chname)) ch.Coords = coords[chname];
+						return ch;
+					}));
+					props.AveragedSegments = 0;
+					props.DatasetLength = file.nsample;
+					props.Datatype = DataType.TimeDomain;
+					props.SegmentationType = SegmentationType.NotSegmented;
+					props.SamplingInterval = 1000000.0 / file.sfreq;
+					props.Rereferenced = false;
+					props.Save(storage);
+					storage.SetStreamTextA("Name", dataName);
+					storage.SetStreamText("NameW", dataName);
+					storage.SetStreamTextA("DataPath", dataFile);
+					storage.SetStreamText("DataPathW", dataFile);
+					storage.SetGuid(new Guid(Guid));
+					storage.SetStreamText("InternalDataXML", file.headerxml);
+				}
 			}
 			catch (Exception ex)
 			{

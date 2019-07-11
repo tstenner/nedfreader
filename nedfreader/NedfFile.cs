@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-public class NedfFile
+public class NedfFile : IDisposable
 {
 	public readonly string headerxml;
 	private readonly FileStream infile;
@@ -144,5 +144,10 @@ public class NedfFile
 		Trace.Assert(nmarker < nsample / 100,
 			$"Unexpected high number of triggers found ({nmarker}), this could indicate a broken file ({infile.Name}).");
 		return markers;
+	}
+
+	public void Dispose()
+	{
+		infile.Dispose();
 	}
 }
