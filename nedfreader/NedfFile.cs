@@ -123,7 +123,7 @@ public class NedfFile
 		return res;
 	}
 
-	public IEnumerable<(uint, uint)> GetMarkerPairs(uint maxsample=int.MaxValue)
+	public IEnumerable<(uint, uint)> GetMarkerPairs(uint maxsample = int.MaxValue)
 	{
 		infile.Seek(Binpos(0) - Chunkfrontlength(), SeekOrigin.Begin);
 		var markers = new List<ValueTuple<uint, uint>>();

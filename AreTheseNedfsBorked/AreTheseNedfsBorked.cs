@@ -10,7 +10,6 @@ namespace AreTheseNedfsBorked
 		{
 			Action<string> w = Console.WriteLine;
 			foreach (var file in args)
-			{
 				try
 				{
 					var r = new NedfFile(file);
@@ -18,14 +17,14 @@ namespace AreTheseNedfsBorked
 					w($"NEDF Version: {r.NEDFversion}");
 					w($"nchan: {r.nchan}/{r.channelnames.Count}, nacc: {r.nacc}");
 					w("Scanning first 1000 samples...");
-					w($"Markers: {r.GetMarkerPairs(maxsample: 1000).Count()}");
+					w($"Markers: {r.GetMarkerPairs(1000).Count()}");
 					w("");
 				}
 				catch (Exception e)
 				{
 					w($"Error: {e.Message}");
 				}
-			}
+
 			Console.ReadKey();
 		}
 	}

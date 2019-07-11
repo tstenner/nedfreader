@@ -69,6 +69,7 @@ namespace BrainVision.Analyzer.Readers
 				MessageDisplay.ShowError("NedfDataReader", "Error reading file", e.Message);
 				return -1;
 			}
+
 			return 1;
 		}
 
@@ -82,22 +83,22 @@ namespace BrainVision.Analyzer.Readers
 				var props = ComponentFactory.CreateChangeProperties();
 				file = new NedfFile(dataFile);
 				var dataName = "Tristans Raw Data";
-				var markers = file.GetMarkerPairs().Select(pair =>
-				{
-					var m = ComponentFactory.CreateChangeMarker();
-					m.Channel = -1;
-					var (pos, val) = pair;
-					m.Position = pos;
-					m.Points = 1;
-					m.Type = "Stimulus";
-					m.Visible = true;
-					m.Description = val.ToString();
-					return m;
-				}).ToList();
+				var markers = file.GetMarkerPairs().ToList();
 				if (markers.Count > file.nsample / 10)
 					dataName = "Corrupt Data File";
 				else
-					ComponentFactory.SaveChangedMarkers(storage, markers);
+					ComponentFactory.SaveChangedMarkers(storage, markers.Select(pair =>
+					{
+						var m = ComponentFactory.CreateChangeMarker();
+						m.Channel = -1;
+						var (pos, val) = pair;
+						m.Position = pos;
+						m.Points = 1;
+						m.Type = "Stimulus";
+						m.Visible = true;
+						m.Description = val.ToString();
+						return m;
+					}).ToList());
 
 				props.Channels.AddRange(file.channelnames.Select(chname =>
 				{

@@ -22,10 +22,14 @@ namespace TestNedfReader
 				{
 					Console.WriteLine("Very high number of markers found, continue?");
 					Console.ReadKey();
-				} else {
-					markers.ForEach(m=>Console.WriteLine($"Marker: {m.Item1}->{m.Item2}"));
 				}
-				Console.WriteLine($"Positions: 0->{r.Binpos(0)}, 100->{r.Binpos(100)}, {r.nsample}->{r.Binpos(r.nsample)}");
+				else
+				{
+					markers.ForEach(m => Console.WriteLine($"Marker: {m.Item1}->{m.Item2}"));
+				}
+
+				Console.WriteLine(
+					$"Positions: 0->{r.Binpos(0)}, 100->{r.Binpos(100)}, {r.nsample}->{r.Binpos(r.nsample)}");
 				Console.WriteLine($"First channel first sample: {r.GetData(0, 1, null)[0]}");
 				Console.WriteLine($"First channel, last sample: {r.GetData(r.nsample - 1, 1, null)[0]}");
 				var watch = Stopwatch.StartNew();

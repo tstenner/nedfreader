@@ -1,0 +1,8 @@
+end_of_line = lf
+indent_style = tab
+indent_size = 4
+csharp_style_expression_bodied_methods = true
+csharp_prefer_simple_default_expression = true
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true
+csharp_prefer_braces = false
