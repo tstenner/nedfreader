@@ -100,11 +100,13 @@ namespace BrainVision.Analyzer.Readers
 						return m;
 					}).ToList());
 
+				var coords = ElectrodeCoordinates.GetDefaultCoordinates();
 				props.Channels.AddRange(file.channelnames.Select(chname =>
 				{
 					var ch = props.CreateChannel();
 					ch.Name = chname;
 					ch.DataUnit = DataUnit.Microvolt;
+					if(coords.ContainsKey(chname)) ch.Coords = coords[chname];
 					return ch;
 				}));
 				props.AveragedSegments = 0;
