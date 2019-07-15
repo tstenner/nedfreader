@@ -4,9 +4,11 @@
 		<ProjectReference Include="..\nedfreader\nedfreader.csproj" />
 		<Reference Include="AnalyzerInterfaces">
 			<HintPath>C:\Vision\Analyzer2\AnalyzerInterfaces.dll</HintPath>
+			<Private>false</Private>
 		</Reference>
 		<Reference Include="Analyzer.Toolbox">
 			<HintPath>C:\Vision\Analyzer2\AnalyzerToolbox.dll</HintPath>
+			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
 </Project>

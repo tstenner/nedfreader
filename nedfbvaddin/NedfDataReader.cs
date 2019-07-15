@@ -6,7 +6,7 @@ using BrainVision.Support;
 
 namespace BrainVision.Analyzer.Readers
 {
-	[Reader(Guid, "NEDF Data Reader", "NEDF Data Reader", 0, 1)]
+	[Reader(Guid, "NEDF Data Reader", "NEDF Data Reader", 0, 1000000)]
 	public class NedfDataReader : IEEGRawFileReader, IEEGData, IDisposable
 	{
 		public const string Guid = "9df2871b-278a-47c4-bd41-0582d874daa9";
@@ -62,7 +62,7 @@ namespace BrainVision.Analyzer.Readers
 			dataFile = sFilename;
 			try
 			{
-				using(new NedfFile(dataFile)){ }
+				using (new NedfFile(dataFile)) { }
 			}
 			catch (Exception e)
 			{
@@ -92,7 +92,7 @@ namespace BrainVision.Analyzer.Readers
 						{
 							var m = ComponentFactory.CreateChangeMarker();
 							m.Channel = -1;
-							var (pos, val) = pair;
+							(var pos, var val) = pair;
 							m.Position = pos;
 							m.Points = 1;
 							m.Type = "Stimulus";

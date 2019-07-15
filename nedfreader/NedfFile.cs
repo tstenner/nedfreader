@@ -95,7 +95,7 @@ public class NedfFile : IDisposable
 	{
 		if (startsample + length > nsample) throw new ArgumentOutOfRangeException(nameof(startsample));
 		var res = new float[nchan * length];
-		if (channelList == null) channelList = Enumerable.Range(0, (int) nchan).ToArray();
+		if (channelList == null) channelList = Enumerable.Range(0, (int)nchan).ToArray();
 		else Array.Sort(channelList);
 		if (channelList.Any(i => i >= nchan))
 			throw new ArgumentOutOfRangeException(nameof(channelList));
@@ -108,13 +108,13 @@ public class NedfFile : IDisposable
 		for (var sample = 0; sample < length; sample++)
 		{
 			if (sample > 0 && startsample % 5 == 0) infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
-			infile.Read(buffer, 0, (int) Samplesize());
+			infile.Read(buffer, 0, (int)Samplesize());
 			for (var i = 0; i < chanlen; i++)
 			{
 				var off = 3 * channelList[i];
 				var raw = (buffer[off] << 16) + (buffer[off + 1] << 8) + buffer[off + 2];
 				if ((buffer[off] & (1 << 7)) != 0) raw -= 1 << 23;
-				res[sample * chanlen + i] = (float) (raw * multiplier);
+				res[sample * chanlen + i] = (float)(raw * multiplier);
 			}
 
 			startsample++;
@@ -137,7 +137,7 @@ public class NedfFile : IDisposable
 			infile.Read(buffer, 0, 4);
 			var t = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
 			if (t != 0)
-				markers.Add(new ValueTuple<uint, uint>(i, (uint) t));
+				markers.Add(new ValueTuple<uint, uint>(i, (uint)t));
 		}
 
 		var nmarker = markers.Count;
@@ -146,8 +146,5 @@ public class NedfFile : IDisposable
 		return markers;
 	}
 
-	public void Dispose()
-	{
-		infile.Dispose();
-	}
+	public void Dispose() => infile.Dispose();
 }
