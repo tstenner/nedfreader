@@ -3,7 +3,7 @@
 		<Authors>Tristan Stenner</Authors>
 		<Company>IMPS UKSH Kiel</Company>
 		<Product>NEDF Reader</Product>
-		<Version>1.1.0</Version>
+		<Version>1.1.1</Version>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<OutputPath>$(SolutionDir)bin\$(Configuration)_$(TargetFramework)\$(MSBuildProjectName)</OutputPath>
 		<OutDir>$(OutputPath)</OutDir>

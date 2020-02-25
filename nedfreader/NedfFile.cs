@@ -135,7 +135,7 @@ public class NedfFile : IDisposable
 			if (i % 5 == 0) infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
 			infile.Seek(Samplesize() - 4, SeekOrigin.Current);
 			infile.Read(buffer, 0, 4);
-			var t = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
+			var t = buffer[3] | (buffer[2] << 8) | (buffer[1] << 16) | (buffer[0] << 24);
 			if (t != 0)
 				markers.Add(new ValueTuple<uint, uint>(i, (uint)t));
 		}
