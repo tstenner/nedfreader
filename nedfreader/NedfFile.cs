@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 public class NedfFile : IDisposable
@@ -20,6 +21,18 @@ public class NedfFile : IDisposable
 		if (dataFile == null) throw new ArgumentNullException(nameof(dataFile));
 		var fs = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
 		headerxml = Encoding.UTF8.GetString(new BinaryReader(fs).ReadBytes(10240).TakeWhile(x => x != 0).ToArray());
+
+		if (headerxml[0] != '<')
+			throw new ArgumentException($"'{dataFile}' does not begin with an xml header");
+
+		// The XML 1.0 spec contains a list of valid characters for tag names:
+		// https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameChar
+		// The neuroelectrics "xml" spec allows any character in tag names, so we
+		// have to sanitize the "xml" to avoid parse errors
+		var res = Regex.Match(headerxml, @"^\s*<([^ ]+?)[^>]*>(.+)</\1>\s*$", RegexOptions.Singleline);
+		if (!res.Success)
+			throw new ArgumentException("The XML header could not be recognized");
+		headerxml = "<valid_xml_tag>" + res.Groups[2] + "</valid_xml_tag>";
 
 		var indoc = new XmlDocument();
 		indoc.LoadXml(headerxml);
