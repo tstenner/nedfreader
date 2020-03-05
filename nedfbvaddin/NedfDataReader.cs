@@ -32,9 +32,7 @@ namespace BrainVision.Analyzer.Readers
 
 		public IEEGProperties GetProperties()
 		{
-			if (eegStorage == null)
-				return null;
-			return eegProperties = eegProperties ?? ComponentFactory.CreateProperties(eegStorage);
+			return eegStorage == null ? null : (eegProperties = eegProperties ?? ComponentFactory.CreateProperties(eegStorage));
 		}
 
 		public float[] GetData(uint nPosition, uint nPoints, int[] channelList)

@@ -126,8 +126,8 @@ public class NedfFile : IDisposable
 			{
 				var off = 3 * channelList[i];
 				var raw = (buffer[off] << 16) + (buffer[off + 1] << 8) + buffer[off + 2];
-				if ((buffer[off] & (1 << 7)) != 0) raw -= 1<<24;
-				res[sample * chanlen + i] = raw == -1 ? (float) raw : (float)(raw * multiplier);
+				if ((buffer[off] & (1 << 7)) != 0) raw -= 1 << 24;
+				res[sample * chanlen + i] = raw == -1 ? (float)raw : (float)(raw * multiplier);
 			}
 
 			startsample++;
