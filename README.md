@@ -8,7 +8,7 @@ files (commonly produced by Enobio / StarStim EEG headsets).
 
 ## Installation
 
-Simply copy the [`dll` file](https://github.com/tstenner/nedfreader/releases)
+Simply copy the [`dll` files](https://github.com/tstenner/nedfreader/releases/latest)
 to your Analyzer directory or add the downloaded folder to the analyzer config:
 
 ![Analyzer admin screenshot](analyzeradmin.png)
