@@ -8,27 +8,27 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-public class NedfFile : IDisposable
+public sealed class NedfFile : IDisposable
 {
 	public readonly string headerxml;
 	private readonly FileStream infile;
 	public readonly uint nchan, nsamplestimpereeg, nacc, sfreq, nsample;
 	public readonly decimal NEDFversion;
-	public List<string> channelnames;
+	public List<string> Channelnames { get; }
 
 	public NedfFile(string dataFile)
 	{
 		if (dataFile == null) throw new ArgumentNullException(nameof(dataFile));
 		var fs = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
-		headerxml = Encoding.UTF8.GetString(new BinaryReader(fs).ReadBytes(10240).TakeWhile(x => x != 0).ToArray());
+		using (var reader = new BinaryReader(fs))
+			headerxml = Encoding.UTF8.GetString(reader.ReadBytes(10240).TakeWhile(x => x != 0).ToArray());
 
 		if (headerxml[0] != '<')
 			throw new ArgumentException($"'{dataFile}' does not begin with an xml header");
 
 		// The XML 1.0 spec contains a list of valid characters for tag names:
 		// https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameChar
-		// The neuroelectrics "xml" spec allows any character in tag names, so we
-		// have to sanitize the "xml" to avoid parse errors
+		// Older NIC versions allowed any character in the root tag name, so we have to sanitize the "xml" to avoid parse errors
 		var res = Regex.Match(headerxml, @"^\s*<([^ ]+?)[^>]*>(.+)</\1>\s*$", RegexOptions.Singleline);
 		if (!res.Success)
 			throw new ArgumentException("The XML header could not be recognized");
@@ -39,7 +39,8 @@ public class NedfFile : IDisposable
 		var el = indoc.DocumentElement;
 		Trace.Assert(el != null, nameof(el) + " != null");
 		NEDFversion = decimal.Parse(el.SelectSingleNode("NEDFversion")?.InnerText ?? "0",
-			NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"));
+			NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture);
+
 		Trace.Assert(NEDFversion >= 1.3m || NEDFversion <= 1.4m,
 			$"Untested NEDFversion {NEDFversion} in {dataFile}, proceed at your own risk.");
 		var addchanstat = el.SelectSingleNode("AdditionalChannelStatus")?.InnerText ?? "OFF";
@@ -49,7 +50,7 @@ public class NedfFile : IDisposable
 		var eegset = el.SelectSingleNode("EEGSettings");
 		var channels = eegset?.SelectSingleNode("EEGMontage")?.ChildNodes;
 		Trace.Assert(channels != null, "No channels found");
-		channelnames = channels.Cast<XmlNode>().Select(node => node.InnerText).ToList();
+		Channelnames = channels.Cast<XmlNode>().Select(node => node.InnerText).ToList();
 
 		nacc = ParseXmlUInt(el, "NumberOfChannelsOfAccelerometer");
 		nchan = ParseXmlUInt(eegset, "TotalNumberOfChannels");
@@ -94,7 +95,7 @@ public class NedfFile : IDisposable
 	{
 		var val = node.SelectSingleNode(xpath);
 		Trace.Assert(val != null, $"Header field {xpath} not found");
-		var res = uint.Parse(val.InnerText);
+		var res = uint.Parse(val.InnerText, CultureInfo.InvariantCulture);
 		return res;
 	}
 
@@ -127,7 +128,7 @@ public class NedfFile : IDisposable
 				var off = 3 * channelList[i];
 				var raw = (buffer[off] << 16) + (buffer[off + 1] << 8) + buffer[off + 2];
 				if ((buffer[off] & (1 << 7)) != 0) raw -= 1 << 24;
-				res[sample * chanlen + i] = raw == -1 ? (float)raw : (float)(raw * multiplier);
+				res[sample * chanlen + i] = raw == -1 ? raw : (float)(raw * multiplier);
 			}
 
 			startsample++;

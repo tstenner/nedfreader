@@ -12,9 +12,9 @@ namespace TestNedfReader
 				? args[0]
 				: @"C:\Users\stenner-t\Desktop\raw\20180703194842_fVP02_S_T3_C_P-S_Task.nedf";
 			{
-				var r = new NedfFile(datafile);
+				using var r = new NedfFile(datafile);
 				Console.WriteLine($"NEDF Version: {r.NEDFversion}");
-				Console.WriteLine($"nchan: {r.nchan}/{r.channelnames.Count}, nacc: {r.nacc}");
+				Console.WriteLine($"nchan: {r.nchan}/{r.Channelnames.Count}, nacc: {r.nacc}");
 				r.GetData(249, 5, null);
 				var markers = r.GetMarkerPairs().ToList();
 				Console.WriteLine($"Markers: {markers.Count}");

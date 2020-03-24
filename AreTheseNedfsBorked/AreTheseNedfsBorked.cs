@@ -12,10 +12,10 @@ namespace AreTheseNedfsBorked
 			foreach (var file in args)
 				try
 				{
-					var r = new NedfFile(file);
+					using var r = new NedfFile(file);
 					w($"File: {Path.GetFileName(file)}");
 					w($"NEDF Version: {r.NEDFversion}");
-					w($"nchan: {r.nchan}/{r.channelnames.Count}, nacc: {r.nacc}");
+					w($"nchan: {r.nchan}/{r.Channelnames.Count}, nacc: {r.nacc}");
 					w("Scanning first 1000 samples...");
 					w($"Markers: {r.GetMarkerPairs(1000).Count()}");
 					w("");

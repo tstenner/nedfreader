@@ -3,11 +3,17 @@
 		<Authors>Tristan Stenner</Authors>
 		<Company>IMPS UKSH Kiel</Company>
 		<Product>NEDF Reader</Product>
-		<Version>1.1.2</Version>
+		<Version>1.1.3</Version>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-		<OutputPath>$(SolutionDir)bin\$(Configuration)_$(TargetFramework)\$(MSBuildProjectName)</OutputPath>
+		<OutputPath>$(SolutionDir)bin\$(Configuration)_$(TargetFramework)</OutputPath>
 		<OutDir>$(OutputPath)</OutDir>
-		<TargetFrameworks>net48</TargetFrameworks>
-		<AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+		<TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
+		<LangVersion>8</LangVersion>
 	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 </Project>
