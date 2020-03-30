@@ -8,10 +8,11 @@ using BrainVision.Support;
 namespace BrainVision.Analyzer.Readers
 {
 	[Reader(ID, "NEDF Data Reader", "NEDF Data Reader", 0, 1000000)]
-	public sealed class NedfDataReader : IEEGRawFileReader, IEEGData
+	public sealed class NedfDataReader : IEEGRawFileReader, IEEGData, IDisposable
 	{
 		public const string ID = "9df2871b-278a-47c4-bd41-0582d874daa9";
-		private string dataFile;
+		private string filename;
+		private NedfFile datafile;
 		private IEEGProperties eegProperties;
 		private IEEGStorage eegStorage;
 
@@ -22,7 +23,8 @@ namespace BrainVision.Analyzer.Readers
 			try
 			{
 				eegStorage = storage as IEEGStorage;
-				dataFile = storage.GetStreamText("DataPath");
+				filename = storage.GetStreamText("DataPath");
+				datafile = new NedfFile(filename);
 				eegProperties = GetProperties();
 			}
 			catch (Exception ex)
@@ -33,11 +35,7 @@ namespace BrainVision.Analyzer.Readers
 
 		public IEEGProperties GetProperties() => eegStorage != null ? (eegProperties ??= ComponentFactory.CreateProperties(eegStorage)) : null;
 
-		public float[] GetData(uint nPosition, uint nPoints, int[] channelList)
-		{
-			using var f = new NedfFile(dataFile);
-			return f.GetData(nPosition, nPoints, channelList);
-		}
+		public float[] GetData(uint nPosition, uint nPoints, int[] channelList) => datafile.GetData(nPosition, nPoints, channelList);
 
 		public IEEGMarker[] GetMarkers(uint nPosition, uint nPoints) => eegStorage?.GetMarkers(nPosition, nPoints);
 
@@ -51,12 +49,12 @@ namespace BrainVision.Analyzer.Readers
 
 		public int OpenRawFile(string sFilename)
 		{
-			if (string.IsNullOrEmpty(sFilename) || !File.Exists(sFilename) || Path.GetExtension(sFilename) != ".nedf")
+			if (string.IsNullOrEmpty(sFilename) || !System.IO.File.Exists(sFilename) || Path.GetExtension(sFilename) != ".nedf")
 				return -1;
-			dataFile = sFilename;
+			filename = sFilename;
 			try
 			{
-				using var nedf = new NedfFile(dataFile);
+				using var nedffile = new NedfFile(filename);
 			}
 			catch (Exception e)
 			{
@@ -75,7 +73,7 @@ namespace BrainVision.Analyzer.Readers
 			try
 			{
 				var props = ComponentFactory.CreateChangeProperties();
-				using var file = new NedfFile(dataFile);
+				using var file = new NedfFile(filename);
 				var dataName = "Tristans Raw Data";
 				var markers = file.GetMarkerPairs().ToList();
 				if (markers.Count > file.nsample / 10)
@@ -112,8 +110,8 @@ namespace BrainVision.Analyzer.Readers
 				props.Save(storage);
 				storage.SetStreamTextA("Name", dataName);
 				storage.SetStreamText("NameW", dataName);
-				storage.SetStreamTextA("DataPath", dataFile);
-				storage.SetStreamText("DataPathW", dataFile);
+				storage.SetStreamTextA("DataPath", filename);
+				storage.SetStreamText("DataPathW", filename);
 				storage.SetGuid(new Guid(ID));
 				storage.SetStreamText("InternalDataXML", file.headerxml);
 			}
@@ -122,5 +120,7 @@ namespace BrainVision.Analyzer.Readers
 				throw new AnalyzerException("NedfDataReader::CreateStorageEntries", "Reader error", ex.Message, ex);
 			}
 		}
+
+		public void Dispose() => datafile?.Dispose();
 	}
 }
