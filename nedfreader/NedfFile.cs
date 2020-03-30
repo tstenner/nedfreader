@@ -108,11 +108,10 @@ public sealed class NedfFile : IDisposable
 	public float[] GetData(uint startsample, uint length, int[] channelList)
 	{
 		if (startsample + length > nsample) throw new ArgumentOutOfRangeException(nameof(startsample));
-		var res = new float[nchan * length];
 		if (channelList == null) channelList = Enumerable.Range(0, (int)nchan).ToArray();
-		else Array.Sort(channelList);
 		if (channelList.Any(i => i >= nchan))
 			throw new ArgumentOutOfRangeException(nameof(channelList));
+		var res = new float[channelList.Length * length];
 
 		const double multiplier = 2400000 / (6.0 * 8388607);
 		//const double multiplier = 1; // Test: get raw values
