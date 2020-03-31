@@ -10,6 +10,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nedfbvaddin", "nedfbvaddin\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AreTheseNedfsBorked", "AreTheseNedfsBorked\AreTheseNedfsBorked.csproj", "{4190B4A4-A478-4712-9487-38BC07CB2BF9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NedfExportMarkers", "nedfexportmarkers\NedfExportMarkers.csproj", "{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{4190B4A4-A478-4712-9487-38BC07CB2BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4190B4A4-A478-4712-9487-38BC07CB2BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4190B4A4-A478-4712-9487-38BC07CB2BF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
