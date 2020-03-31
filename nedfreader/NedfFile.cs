@@ -95,8 +95,7 @@ public sealed class NedfFile : IDisposable
 	{
 		var val = node.SelectSingleNode(xpath);
 		Trace.Assert(val != null, $"Header field {xpath} not found");
-		var res = uint.Parse(val.InnerText, CultureInfo.InvariantCulture);
-		return res;
+		return uint.Parse(val.InnerText, CultureInfo.InvariantCulture);
 	}
 
 	public uint Binpos(uint sample) =>
@@ -138,8 +137,8 @@ public sealed class NedfFile : IDisposable
 	public IEnumerable<(uint, uint)> GetMarkerPairs(uint maxsample = int.MaxValue)
 	{
 		infile.Seek(Binpos(0) - Chunkfrontlength(), SeekOrigin.Begin);
-		var markers = new List<ValueTuple<uint, uint>>();
 
+		uint consecutive = 0, maxconsecutive = 0;
 		var buffer = new byte[4];
 		if (maxsample > nsample) maxsample = nsample;
 		for (uint i = 0; i < maxsample; i++)
@@ -149,13 +148,27 @@ public sealed class NedfFile : IDisposable
 			infile.Read(buffer, 0, 4);
 			var t = buffer[3] | (buffer[2] << 8) | (buffer[1] << 16) | (buffer[0] << 24);
 			if (t != 0)
-				markers.Add(new ValueTuple<uint, uint>(i, (uint)t));
+			{
+				yield return new ValueTuple<uint, uint>(i, (uint)t);
+				consecutive++;
+			}
+			else
+			{
+				/* This ignores consecutive markers at the end of the file as
+				there's no sample without marker.
+				However, some nedf files suddenly have no markers anymore and
+				then thousands of markers at the end. The EEG data can be read
+				correctly and both NIC and the EEGLAB plugin read the same data
+				so this is not considered a bug.
+				*/
+				maxconsecutive = consecutive > maxconsecutive ? consecutive : maxconsecutive;
+				consecutive = 0;
+			}
 		}
 
-		var nmarker = markers.Count;
-		Trace.Assert(nmarker < nsample / 100,
-			$"Unexpected high number of triggers found ({nmarker}), this could indicate a broken file ({infile.Name}).");
-		return markers;
+		Trace.Assert(maxconsecutive < 5,
+			$"Unexpected trigger density found ({maxconsecutive} consecutive, {consecutive} at the end), this could indicate a broken file ({infile.Name}).");
+		yield break;
 	}
 
 	public void Dispose() => infile.Dispose();
