@@ -7,11 +7,12 @@
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<OutputPath>$(SolutionDir)bin\$(Configuration)_$(TargetFramework)</OutputPath>
 		<OutDir>$(SolutionDir)obj\$(Configuration)_$(TargetFramework)</OutDir>
-		<TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks Condition="'$(OS)' == 'Unix'">netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks Condition="'$(OS)' != 'Unix'">net48</TargetFrameworks>
 		<LangVersion>8</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+		<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
