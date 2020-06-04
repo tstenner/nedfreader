@@ -1,175 +1,225 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
-public sealed class NedfFile : IDisposable
+namespace NedfReader
 {
-	public readonly string headerxml;
-	private readonly FileStream infile;
-	public readonly uint nchan, nsamplestimpereeg, nacc, sfreq, nsample;
-	public readonly decimal NEDFversion;
-	public List<string> Channelnames { get; }
-
-	public NedfFile(string dataFile)
+	[Serializable]
+	public sealed class StepDetails
 	{
-		if (dataFile == null) throw new ArgumentNullException(nameof(dataFile));
-		var fs = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
-		using (var reader = new BinaryReader(fs))
-			headerxml = Encoding.UTF8.GetString(reader.ReadBytes(10240).TakeWhile(x => x != 0).ToArray());
+		public string SoftwareVersion, DeviceClass, StepName;
+		public ulong StartDate_firstEEGTimestamp;
+	}
+	[Serializable]
+	public sealed class EEGSettings
+	{
+		public uint TotalNumberOfChannels, EEGSamplingRate, NumberOfRecordsOfEEG, NumberOfPacketsLost;
+		[XmlElement(IsNullable = true)]
+		public string EEGUnits;
+		public EEGMontage EEGMontage;
+	}
+	[Serializable]
+	public sealed class STIMSettings
+	{
+		public uint NumberOfStimulationChannels, NumberOfRecordsOfStimulation, StimulationSamplingRate;
+		public StepDetails StepDetails;
+	}
+	[Serializable]
+	public sealed class EEGMontage : IXmlSerializable
+	{
 
-		if (headerxml[0] != '<')
-			throw new ArgumentException($"'{dataFile}' does not begin with an xml header");
+		[XmlAnyElement]
+		public List<string> channelnames = new List<string>();
 
-		// The XML 1.0 spec contains a list of valid characters for tag names:
-		// https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameChar
-		// Older NIC versions allowed any character in the root tag name, so we have to sanitize the "xml" to avoid parse errors
-		var res = Regex.Match(headerxml, @"^\s*<([^ ]+?)[^>]*>(.+)</\1>\s*$", RegexOptions.Singleline);
-		if (!res.Success)
-			throw new ArgumentException("The XML header could not be recognized");
-		headerxml = "<valid_xml_tag>" + res.Groups[2] + "</valid_xml_tag>";
+		public XmlSchema GetSchema() => null;
 
-		var indoc = new XmlDocument();
-		indoc.LoadXml(headerxml);
-		var el = indoc.DocumentElement;
-		Trace.Assert(el != null, nameof(el) + " != null");
-		NEDFversion = decimal.Parse(el.SelectSingleNode("NEDFversion")?.InnerText ?? "0",
-			NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture);
-
-		Trace.Assert(NEDFversion >= 1.3m || NEDFversion <= 1.4m,
-			$"Untested NEDFversion {NEDFversion} in {dataFile}, proceed at your own risk.");
-		var addchanstat = el.SelectSingleNode("AdditionalChannelStatus")?.InnerText ?? "OFF";
-		if (addchanstat != "OFF")
-			throw new ArgumentException($"Unexpected value for AdditionalChannelStatus: {addchanstat}");
-
-		var eegset = el.SelectSingleNode("EEGSettings");
-		var channels = eegset?.SelectSingleNode("EEGMontage")?.ChildNodes;
-		Trace.Assert(channels != null, "No channels found");
-		Channelnames = channels.Cast<XmlNode>().Select(node => node.InnerText).ToList();
-
-		nacc = ParseXmlUInt(el, "NumberOfChannelsOfAccelerometer");
-		nchan = ParseXmlUInt(eegset, "TotalNumberOfChannels");
-		sfreq = ParseXmlUInt(eegset, "EEGSamplingRate");
-		var eegunits = eegset.SelectSingleNode("EEGUnits")?.InnerText ?? "nV";
-		if (eegunits != "nV")
-			throw new ArgumentException($"Unknown EEG unit {eegunits}");
-
-		nsample = ParseXmlUInt(eegset, "NumberOfRecordsOfEEG");
-
-		if (el.SelectSingleNode("STIMSettings") != null)
+		public void ReadXml(XmlReader reader)
 		{
-			var node = el.SelectSingleNode("STIMSettings");
-			var nstim = ParseXmlUInt(node, "NumberOfStimulationChannels");
-			Trace.Assert(
-				nstim != 0 || (el.SelectSingleNode("StepDetails/SoftwareVersion")?.InnerText ?? "") != "NIC v2.0.8",
-				"Data files recorded by NIC 2.0.8 with stimulation channels are broken, proceed at your own risk!");
-			var numstimrec = ParseXmlUInt(node, "NumberOfRecordsOfStimulation");
-			Trace.Assert(numstimrec >= 2 * nsample,
-				$"Can't handle intermittent stimulation data {numstimrec} records, expected {2 * nsample}");
-			var stimsrate = ParseXmlUInt(node, "StimulationSamplingRate");
-			Trace.Assert(stimsrate == 1000, $"Unexpected stimulation sampling rate ({stimsrate}!=1000)");
-			nsamplestimpereeg = 2;
+			if (reader is null)
+				throw new ArgumentNullException(nameof(reader));
+			while (reader.Read() && (reader.NodeType != XmlNodeType.EndElement || reader.Name != "EEGMontage"))
+				if (reader.NodeType == XmlNodeType.Text)
+					channelnames.Add(reader.Value);
+			reader.Read();
 		}
 
-		Trace.Assert(ParseXmlUInt(eegset, "NumberOfPacketsLost") == 0,
-			"Packets were lost while recording, aborting...");
-		Trace.Assert(ParseXmlUInt(el, "AccelerometerSamplingRate") == 100, "Unexpected sampling rate of accelerometer");
-
-		if ((el.SelectSingleNode("stepDetails/DeviceClass")?.InnerText ?? "") == "STARSTIM")
-			throw new ArgumentException("Found Starstim, not sure how to handle this");
-
-		infile = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
-	}
-
-	// Normally, it should be nchaneeg + nsamplestimpereeg*nstim, but it's not.
-	public uint Samplesize() => (1 + nsamplestimpereeg) * nchan * 3 + 4;
-	public uint Chunkfrontlength() => nacc * 2;
-	public uint Chunksize() => Samplesize() * 5 + Chunkfrontlength();
-
-	private static uint ParseXmlUInt(XmlNode node, string xpath)
-	{
-		var val = node.SelectSingleNode(xpath);
-		Trace.Assert(val != null, $"Header field {xpath} not found");
-		return uint.Parse(val.InnerText, CultureInfo.InvariantCulture);
-	}
-
-	public uint Binpos(uint sample) =>
-		10240 // header
-		+ Chunkfrontlength()
-		+ sample / 5 * Chunksize()
-		+ sample % 5 * Samplesize();
-
-	public float[] GetData(uint startsample, uint length, int[] channelList)
-	{
-		if (startsample + length > nsample) throw new ArgumentOutOfRangeException(nameof(startsample));
-		channelList ??= Enumerable.Range(0, (int)nchan).ToArray();
-		if (channelList.Any(i => i >= nchan || i < 0))
-			throw new ArgumentOutOfRangeException(nameof(channelList));
-		var res = new float[channelList.Length * length];
-
-		const double multiplier = 2400000 / (6.0 * 8388607);
-		infile.Seek(Binpos(startsample), SeekOrigin.Begin);
-		var chanlen = channelList.Length;
-		var buffer = new byte[Samplesize()];
-		for (var sample = 0; sample < length; sample++)
+		public void WriteXml(XmlWriter writer)
 		{
-			if (sample > 0 && startsample % 5 == 0) infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
-			infile.Read(buffer, 0, (int)Samplesize());
-			for (var i = 0; i < chanlen; i++)
+		}
+	}
+	[Serializable]
+	[XmlRoot("valid_xml_tag")]
+	public sealed class NedfHeader
+	{
+		public decimal NEDFversion;
+		public string AdditionalChannelStatus, AccelerometerUnits;
+		public uint NumberOfChannelsOfAccelerometer, AccelerometerSamplingRate;
+		public EEGSettings EEGSettings;
+		public STIMSettings STIMSettings;
+		public StepDetails StepDetails;
+	}
+
+	public sealed class NedfFile : IDisposable
+	{
+		public readonly NedfHeader hdr;
+		public readonly string headerxml;
+		private readonly FileStream infile;
+		public readonly uint NSampleStimPerEEG;
+		public uint NSample => hdr.EEGSettings.NumberOfRecordsOfEEG;
+		public uint SFreq => hdr.EEGSettings.EEGSamplingRate;
+		public uint NChan => hdr.EEGSettings.TotalNumberOfChannels;
+		public uint NAcc => hdr.NumberOfChannelsOfAccelerometer;
+		public readonly decimal NEDFversion;
+		public List<string> Channelnames => hdr.EEGSettings.EEGMontage.channelnames;
+
+		private readonly Action<string> SuspiciousFileCallback;
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters")]
+		public NedfFile(string dataFile, Action<string> suspiciousFileCallback = null)
+		{
+			SuspiciousFileCallback = suspiciousFileCallback;
+			if (dataFile is null)
+				throw new ArgumentNullException(nameof(dataFile));
+			infile = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
+			headerxml = Encoding.UTF8.GetString(new BinaryReader(infile).ReadBytes(10240)).Trim('\0');
+
+			if (headerxml[0] != '<')
+				throw new ArgumentException($"'{dataFile}' does not begin with an xml header");
+
+			// The XML 1.0 spec contains a list of valid characters for tag names:
+			// https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameChar
+			// Older NIC versions allowed any character in the root tag name, so we have to sanitize the "xml" to avoid parse errors
+			var res = Regex.Match(headerxml, @"^\s*<([^ ]+?)[^>]*>(.+)</\1>\s*$", RegexOptions.Singleline);
+			if (!res.Success)
+				throw new ArgumentException("The XML header could not be recognized");
+			headerxml = "<valid_xml_tag>" + res.Groups[2] + "</valid_xml_tag>";
+
+			using (var reader = XmlReader.Create(new StringReader(headerxml)))
+				hdr = (NedfHeader)new XmlSerializer(typeof(NedfHeader)).Deserialize(reader);
+
+			NEDFversion = hdr.NEDFversion;
+			if (NEDFversion < 1.3m || NEDFversion > 1.4m)
+				SuspiciousFileCallback?.Invoke($"Untested NEDFversion {NEDFversion} in {dataFile}, proceed at your own risk.");
+			if ((hdr.AdditionalChannelStatus ?? "OFF") != "OFF")
+				throw new ArgumentException($"Unexpected value for AdditionalChannelStatus: {hdr.AdditionalChannelStatus}");
+
+			string eegunits = hdr.EEGSettings.EEGUnits ?? "nV";
+			if (eegunits != "nV")
+				throw new ArgumentException($"Unknown EEG unit {eegunits??"null"}");
+
+			var node = hdr.STIMSettings;
+			if (!(node is null))
 			{
-				var off = 3 * channelList[i];
-				var raw = (buffer[off] << 16) + (buffer[off + 1] << 8) + buffer[off + 2];
-				if ((buffer[off] & (1 << 7)) != 0) raw -= 1 << 24;
-				res[sample * chanlen + i] = raw == -1 ? raw : (float)(raw * multiplier);
+				if (node.NumberOfStimulationChannels != 0 && hdr.StepDetails.SoftwareVersion == "NIC v2.0.8")
+					SuspiciousFileCallback?.Invoke("Data files recorded by NIC 2.0.8 with stimulation channels are broken, proceed at your own risk!");
+				uint numstimrec = node.NumberOfRecordsOfStimulation;
+				if (numstimrec < 2 * NSample)
+					throw new Exception($"Can't handle intermittent stimulation data {numstimrec} records, expected {2 * NSample}");
+				uint stimsrate = node.StimulationSamplingRate;
+				if (stimsrate != 1000)
+					throw new Exception($"Unexpected stimulation sampling rate ({stimsrate}!=1000)");
+				NSampleStimPerEEG = 2;
 			}
 
-			startsample++;
+			if (hdr.EEGSettings.NumberOfPacketsLost > 0)
+				throw new Exception("Packets were lost while recording, aborting...");
+			if (hdr.AccelerometerSamplingRate != 100)
+				throw new Exception("Unexpected sampling rate of accelerometer");
+
+			if (hdr.StepDetails.DeviceClass == "STARSTIM")
+				SuspiciousFileCallback?.Invoke("Found Starstim, not sure how to handle this");
 		}
 
-		return res;
-	}
+		// Normally, it should be nchaneeg + nsamplestimpereeg*nstim, but it's not.
+		public uint Samplesize() => (1 + NSampleStimPerEEG) * NChan * 3 + 4;
+		public uint Chunkfrontlength() => NAcc * 2;
+		public uint Chunksize() => Samplesize() * 5 + Chunkfrontlength();
 
-	public IEnumerable<(uint, uint)> GetMarkerPairs(uint maxsample = int.MaxValue)
-	{
-		infile.Seek(Binpos(0) - Chunkfrontlength(), SeekOrigin.Begin);
+		public uint Binpos(uint sample) =>
+			10240 // header
+			+ Chunkfrontlength()
+			+ sample / 5 * Chunksize()
+			+ sample % 5 * Samplesize();
 
-		uint consecutive = 0, maxconsecutive = 0;
-		var buffer = new byte[4];
-		if (maxsample > nsample) maxsample = nsample;
-		for (uint i = 0; i < maxsample; i++)
+		public float[] GetData(uint startsample, uint length, int[] channelList)
 		{
-			if (i % 5 == 0) infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
-			infile.Seek(Samplesize() - 4, SeekOrigin.Current);
-			infile.Read(buffer, 0, 4);
-			var t = buffer[3] | (buffer[2] << 8) | (buffer[1] << 16) | (buffer[0] << 24);
-			if (t != 0)
+			if (startsample + length > NSample)
+				throw new ArgumentOutOfRangeException(nameof(startsample));
+			channelList ??= Enumerable.Range(0, (int)NChan).ToArray();
+			if (channelList.Any(i => i >= NChan || i < 0))
+				throw new ArgumentOutOfRangeException(nameof(channelList));
+			var res = new float[channelList.Length * length];
+
+			const double multiplier = 2400000 / (6.0 * 8388607);
+			infile.Seek(Binpos(startsample), SeekOrigin.Begin);
+			int chanlen = channelList.Length;
+			var buffer = new byte[Samplesize()];
+			for (int sample = 0; sample < length; sample++)
 			{
-				yield return new ValueTuple<uint, uint>(i, (uint)t);
-				consecutive++;
+				if (sample > 0 && startsample % 5 == 0)
+					infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
+				infile.Read(buffer, 0, (int)Samplesize());
+				for (int i = 0; i < chanlen; i++)
+				{
+					int off = 3 * channelList[i];
+					int raw = (buffer[off] << 16) + (buffer[off + 1] << 8) + buffer[off + 2];
+					if ((buffer[off] & (1 << 7)) != 0)
+						raw -= 1 << 24;
+					res[sample * chanlen + i] = raw == -1 ? raw : (float)(raw * multiplier);
+				}
+
+				startsample++;
 			}
-			else
-			{
-				/* This ignores consecutive markers at the end of the file as
-				there's no sample without marker.
-				However, some nedf files suddenly have no markers anymore and
-				then thousands of markers at the end. The EEG data can be read
-				correctly and both NIC and the EEGLAB plugin read the same data
-				so this is not considered a bug.
-				*/
-				maxconsecutive = consecutive > maxconsecutive ? consecutive : maxconsecutive;
-				consecutive = 0;
-			}
+
+			return res;
 		}
 
-		Trace.Assert(maxconsecutive < 5,
-			$"Unexpected trigger density found ({maxconsecutive} consecutive, {consecutive} at the end), this could indicate a broken file ({infile.Name}).");
-		yield break;
+		public IEnumerable<(uint, uint)> GetMarkerPairs(uint maxsample = int.MaxValue)
+		{
+			infile.Seek(Binpos(0) - Chunkfrontlength(), SeekOrigin.Begin);
+
+			uint consecutive = 0, maxconsecutive = 0;
+			var buffer = new byte[4];
+			if (maxsample > NSample)
+				maxsample = NSample;
+			for (uint i = 0; i < maxsample; i++)
+			{
+				if (i % 5 == 0)
+					infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
+				infile.Seek(Samplesize() - 4, SeekOrigin.Current);
+				infile.Read(buffer, 0, 4);
+				int t = buffer[3] | (buffer[2] << 8) | (buffer[1] << 16) | (buffer[0] << 24);
+				if (t != 0)
+				{
+					yield return new ValueTuple<uint, uint>(i, (uint)t);
+					consecutive++;
+				}
+				else
+				{
+					/* This ignores consecutive markers at the end of the file as
+					there's no sample without marker.
+					However, some nedf files suddenly have no markers anymore and
+					then thousands of markers at the end. The EEG data can be read
+					correctly and both NIC and the EEGLAB plugin read the same data
+					so this is not considered a bug.
+					*/
+					maxconsecutive = consecutive > maxconsecutive ? consecutive : maxconsecutive;
+					consecutive = 0;
+				}
+			}
+
+			if (maxconsecutive > 5)
+				SuspiciousFileCallback?.Invoke($"Unexpected trigger density found ({maxconsecutive} consecutive, {consecutive} at the end), this could indicate a broken file ({infile.Name}).");
+			yield break;
+		}
+
+		public void Dispose() => infile.Dispose();
 	}
 
-	public void Dispose() => infile.Dispose();
 }

@@ -2,8 +2,10 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using BrainVision.Interfaces;
 using BrainVision.Support;
+using NedfReader;
 
 namespace BrainVision.Analyzer.Readers
 {
@@ -73,10 +75,10 @@ namespace BrainVision.Analyzer.Readers
 			try
 			{
 				var props = ComponentFactory.CreateChangeProperties();
-				using var file = new NedfFile(filename);
+				using var file = new NedfFile(filename, (warning)=>MessageBox.Show(filename, warning));
 				var dataName = "Tristans Raw Data";
 				var markers = file.GetMarkerPairs().ToList();
-				if (markers.Count > file.nsample / 10)
+				if (markers.Count > file.NSample / 10)
 					dataName = "Corrupt Data File";
 				else
 					ComponentFactory.SaveChangedMarkers(storage, markers.Select(pair =>
@@ -102,10 +104,10 @@ namespace BrainVision.Analyzer.Readers
 					return ch;
 				}));
 				props.AveragedSegments = 0;
-				props.DatasetLength = file.nsample;
+				props.DatasetLength = file.NSample;
 				props.Datatype = DataType.TimeDomain;
 				props.SegmentationType = SegmentationType.NotSegmented;
-				props.SamplingInterval = 1000000.0 / file.sfreq;
+				props.SamplingInterval = 1000000.0 / file.SFreq;
 				props.Rereferenced = false;
 				props.Save(storage);
 				storage.SetStreamTextA("Name", dataName);

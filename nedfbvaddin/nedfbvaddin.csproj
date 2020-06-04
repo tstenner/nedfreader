@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>net48</TargetFrameworks>
 	</PropertyGroup>
@@ -13,5 +13,6 @@
 			<HintPath>C:\Vision\Analyzer2\AnalyzerToolbox.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="System.Windows.Forms" />
 	</ItemGroup>
 </Project>

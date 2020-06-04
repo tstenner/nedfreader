@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using NedfReader;
 
 internal class NedfExportMarkers
 {
@@ -8,7 +9,8 @@ internal class NedfExportMarkers
 		foreach (var file in args)
 			try
 			{
-				Console.WriteLine(file);
+				Action<string> OnErr = Console.Error.WriteLine;
+				Console.WriteLine(file, OnErr);
 				using var r = new NedfFile(file);
 				var basename = Path.GetFileNameWithoutExtension(file);
 				using var outfile = new StreamWriter(basename + "_markers.csv");
@@ -23,7 +25,7 @@ internal class NedfExportMarkers
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine($"{file}: Error: {e.Message}");
+				Console.Error.WriteLine($"{file}: Error: {e.Message}");
 			}
 		Console.WriteLine("Done, press enter to exit");
 		Console.ReadLine();
