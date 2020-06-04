@@ -6,11 +6,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nedfreader", "nedfreader\ne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestNedfReader", "TestNedfReader\TestNedfReader.csproj", "{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nedfbvaddin", "nedfbvaddin\nedfbvaddin.csproj", "{9DF2871B-278A-47C4-BD41-0582D874DAA9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AreTheseNedfsBorked", "AreTheseNedfsBorked\AreTheseNedfsBorked.csproj", "{4190B4A4-A478-4712-9487-38BC07CB2BF9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NedfExportMarkers", "nedfexportmarkers\NedfExportMarkers.csproj", "{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NedfExportStats", "NedfExportStats\NedfExportStats.csproj", "{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,18 +24,14 @@ Global
 		{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9DF2871B-278A-47C4-BD41-0582D874DAA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9DF2871B-278A-47C4-BD41-0582D874DAA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9DF2871B-278A-47C4-BD41-0582D874DAA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9DF2871B-278A-47C4-BD41-0582D874DAA9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4190B4A4-A478-4712-9487-38BC07CB2BF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4190B4A4-A478-4712-9487-38BC07CB2BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4190B4A4-A478-4712-9487-38BC07CB2BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4190B4A4-A478-4712-9487-38BC07CB2BF9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
