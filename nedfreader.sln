@@ -4,11 +4,7 @@ VisualStudioVersion = 16.0.29021.104
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nedfreader", "nedfreader\nedfreader.csproj", "{E83CBDCE-5CB9-424D-AB34-BC38941349A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestNedfReader", "TestNedfReader\TestNedfReader.csproj", "{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NedfExportMarkers", "nedfexportmarkers\NedfExportMarkers.csproj", "{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NedfExportStats", "NedfExportStats\NedfExportStats.csproj", "{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NedfExport", "NedfExport\NedfExport.csproj", "{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,23 +16,15 @@ Global
 		{E83CBDCE-5CB9-424D-AB34-BC38941349A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E83CBDCE-5CB9-424D-AB34-BC38941349A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E83CBDCE-5CB9-424D-AB34-BC38941349A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4DBC0EFD-6FE6-43D9-9035-AF482C2B39E2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79C96491-48B2-4BBD-A6B4-13F8F7F3509F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6199FDDF-C7D0-44C5-8351-A5812EEEECBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {727C7A0E-6CCC-45A7-8E44-DAEA5DBF39E9}
+		SolutionGuid = {4D779D71-BAB6-41E4-BEF2-7504C50F48BA}
 	EndGlobalSection
 EndGlobal
