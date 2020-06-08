@@ -111,7 +111,7 @@ namespace NedfReader
 
 			string eegunits = hdr.EEGSettings.EEGUnits ?? "nV";
 			if (eegunits != "nV")
-				throw new ArgumentException($"Unknown EEG unit {eegunits??"null"}");
+				throw new ArgumentException($"Unknown EEG unit {eegunits ?? "null"}");
 
 			var node = hdr.STIMSettings;
 			if (!(node is null))
@@ -137,15 +137,13 @@ namespace NedfReader
 		}
 
 		// Normally, it should be nchaneeg + nsamplestimpereeg*nstim, but it's not.
-		public uint Samplesize() => (1 + NSampleStimPerEEG) * NChan * 3 + 4;
-		public uint Chunkfrontlength() => NAcc * 2;
-		public uint Chunksize() => Samplesize() * 5 + Chunkfrontlength();
+		private uint Samplesize => (1 + NSampleStimPerEEG) * NChan * 3 + 4;
+		private uint Chunkfrontlength => NAcc * 2;
+		private uint Chunksize => Samplesize * 5 + Chunkfrontlength;
 
 		public uint Binpos(uint sample) =>
 			10240 // header
-			+ Chunkfrontlength()
-			+ sample / 5 * Chunksize()
-			+ sample % 5 * Samplesize();
+			+ Chunkfrontlength + sample / 5 * Chunksize + sample % 5 * Samplesize;
 
 		public float[] GetData(uint startsample, uint length, int[] channelList)
 		{
@@ -159,12 +157,12 @@ namespace NedfReader
 			const double multiplier = 2400000 / (6.0 * 8388607);
 			infile.Seek(Binpos(startsample), SeekOrigin.Begin);
 			int chanlen = channelList.Length;
-			var buffer = new byte[Samplesize()];
+			var buffer = new byte[Samplesize];
 			for (int sample = 0; sample < length; sample++)
 			{
 				if (sample > 0 && startsample % 5 == 0)
-					infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
-				infile.Read(buffer, 0, (int)Samplesize());
+					infile.Seek(Chunkfrontlength, SeekOrigin.Current);
+				infile.Read(buffer, 0, (int)Samplesize);
 				for (int i = 0; i < chanlen; i++)
 				{
 					int off = 3 * channelList[i];
@@ -182,7 +180,7 @@ namespace NedfReader
 
 		public IEnumerable<(uint, uint)> GetMarkerPairs(uint maxsample = int.MaxValue)
 		{
-			infile.Seek(Binpos(0) - Chunkfrontlength(), SeekOrigin.Begin);
+			infile.Seek(Binpos(0) - Chunkfrontlength, SeekOrigin.Begin);
 
 			uint consecutive = 0, maxconsecutive = 0;
 			var buffer = new byte[4];
@@ -191,13 +189,13 @@ namespace NedfReader
 			for (uint i = 0; i < maxsample; i++)
 			{
 				if (i % 5 == 0)
-					infile.Seek(Chunkfrontlength(), SeekOrigin.Current);
-				infile.Seek(Samplesize() - 4, SeekOrigin.Current);
+					infile.Seek(Chunkfrontlength, SeekOrigin.Current);
+				infile.Seek(Samplesize - 4, SeekOrigin.Current);
 				infile.Read(buffer, 0, 4);
 				int t = buffer[3] | (buffer[2] << 8) | (buffer[1] << 16) | (buffer[0] << 24);
 				if (t != 0)
 				{
-					yield return new ValueTuple<uint, uint>(i, (uint)t);
+					yield return (i, (uint)t);
 					consecutive++;
 				}
 				else
