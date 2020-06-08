@@ -5,10 +5,10 @@
 		<Product>NEDF Reader</Product>
 		<Version>1.1.4</Version>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-		<OutputPath>$(SolutionDir)bin\$(Configuration)_$(TargetFramework)</OutputPath>
-		<OutDir>$(SolutionDir)obj\$(Configuration)_$(TargetFramework)</OutDir>
-		<TargetFrameworks Condition="'$(OS)' == 'Unix'">netcoreapp3.1</TargetFrameworks>
-		<TargetFrameworks Condition="'$(OS)' != 'Unix'">net48</TargetFrameworks>
+		<BaseIntermediateOutputPath>$(SolutionDir)\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+		<OutputPath>$(SolutionDir)bin\$(Configuration)</OutputPath>
+		<PublishDir>..\pub</PublishDir>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
 		<LangVersion>8</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
