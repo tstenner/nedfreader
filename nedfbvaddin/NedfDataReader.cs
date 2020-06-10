@@ -75,8 +75,8 @@ namespace BrainVision.Analyzer.Readers
 			try
 			{
 				var props = ComponentFactory.CreateChangeProperties();
-				using var file = new NedfFile(filename, (warning)=>MessageBox.Show(filename, warning));
-				var dataName = "Tristans Raw Data";
+				using var file = new NedfFile(filename, (warning)=>MessageBox.Show(warning, filename));
+				string dataName = "Tristans Raw Data";
 				var markers = file.GetMarkerPairs().ToList();
 				if (markers.Count > file.NSample / 10)
 					dataName = "Corrupt Data File";
@@ -85,7 +85,7 @@ namespace BrainVision.Analyzer.Readers
 					{
 						var m = ComponentFactory.CreateChangeMarker();
 						m.Channel = -1;
-						(var pos, var val) = pair;
+						(uint pos, var val) = pair;
 						m.Position = pos;
 						m.Points = 1;
 						m.Type = "Stimulus";

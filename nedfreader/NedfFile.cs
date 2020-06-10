@@ -70,8 +70,8 @@ namespace NedfReader
 		public readonly NedfHeader hdr;
 		public readonly string headerxml;
 		private readonly FileStream infile;
-		public readonly uint NSampleStimPerEEG;
-		public uint NSample => hdr.EEGSettings.NumberOfRecordsOfEEG;
+		public readonly uint NSampleStimPerEEG = 0;
+		public uint NSample;
 		public uint SFreq => hdr.EEGSettings.EEGSamplingRate;
 		public uint NChan => hdr.EEGSettings.TotalNumberOfChannels;
 		public uint NAcc => hdr.NumberOfChannelsOfAccelerometer;
@@ -87,10 +87,13 @@ namespace NedfReader
 			if (dataFile is null)
 				throw new ArgumentNullException(nameof(dataFile));
 			infile = new FileStream(dataFile, FileMode.Open, FileAccess.Read);
-			headerxml = Encoding.UTF8.GetString(new BinaryReader(infile).ReadBytes(10240)).Trim('\0');
-
-			if (headerxml[0] != '<')
+			const int headersize = 10240;
+			byte[] buf = new byte[headersize];
+			infile.Read(buf, 0, headersize);
+			if (buf[0] != '<')
 				throw new ArgumentException($"'{dataFile}' does not begin with an xml header");
+
+			headerxml = Encoding.UTF8.GetString(buf).Trim('\0');
 
 			// The XML 1.0 spec contains a list of valid characters for tag names:
 			// https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameChar
@@ -109,6 +112,8 @@ namespace NedfReader
 			if ((hdr.AdditionalChannelStatus ?? "OFF") != "OFF")
 				throw new ArgumentException($"Unexpected value for AdditionalChannelStatus: {hdr.AdditionalChannelStatus}");
 
+			NSample = hdr.EEGSettings.NumberOfRecordsOfEEG;
+
 			string eegunits = hdr.EEGSettings.EEGUnits ?? "nV";
 			if (eegunits != "nV")
 				throw new ArgumentException($"Unknown EEG unit {eegunits ?? "null"}");
@@ -120,7 +125,10 @@ namespace NedfReader
 					SuspiciousFileCallback?.Invoke("Data files recorded by NIC 2.0.8 with stimulation channels are broken, proceed at your own risk!");
 				uint numstimrec = node.NumberOfRecordsOfStimulation;
 				if (numstimrec < 2 * NSample)
-					throw new Exception($"Can't handle intermittent stimulation data {numstimrec} records, expected {2 * NSample}");
+				{
+					SuspiciousFileCallback?.Invoke($"Intermittent stimulation data {numstimrec} <= {2 * NSample}, EEG data will be truncated.");
+					NSample = numstimrec / 2;
+				}
 				uint stimsrate = node.StimulationSamplingRate;
 				if (stimsrate != 1000)
 					throw new Exception($"Unexpected stimulation sampling rate ({stimsrate}!=1000)");

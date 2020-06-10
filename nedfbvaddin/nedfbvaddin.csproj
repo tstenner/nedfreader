@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net48</TargetFrameworks>
+		<TargetFramework>net48</TargetFramework>
+		<OutputPath>C:\Vision\Analyzer2\</OutputPath>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\nedfreader\nedfreader.csproj" />
